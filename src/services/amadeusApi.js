@@ -79,7 +79,7 @@ export const searchAmadeusFlights = async (searchParams) => {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       },
-      timeout: 30000
+      timeout: 50000
     });
     logger.info(' Flight search response:', typeof(response.data.data),response.data.data);
 
@@ -92,7 +92,7 @@ export const searchAmadeusFlights = async (searchParams) => {
     };
 
   } catch (error) {
-    console.error(' Flight search error:', error.response);
+    console.error(' Flight search error:', error.response?.data || error.message);
     return {
       success: false,
       error: error.response?.message || error.message
@@ -105,24 +105,23 @@ export const searchAmadeusFlights = async (searchParams) => {
 export const getFlightOfferPrices = async (flightDetails) => {
   try {
     await ensureValidToken();
-   
-   
 
-    const response = await axios.post(`${AMADEUS_BASE_URL}/v1/shopping/flight-offers/pricing`, 
-    {
-      data: {
-      type: "flight-offers-pricing",
-      flightOffers: [flightDetails]
-      }
-    },     
-    {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
+    const response = await axios.post(
+      `${AMADEUS_BASE_URL}/v1/shopping/flight-offers/pricing`,
+      {
+        data: {
+          type: "flight-offers-pricing",
+          flightOffers: [flightDetails]
+        }
       },
-      timeout: 10000
-    }
-  );
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      }
+    );
 
     return {
       success: true,
@@ -130,10 +129,17 @@ export const getFlightOfferPrices = async (flightDetails) => {
     };
 
   } catch (error) {
-    logger.info(' Error fetching flight offer prices:',error.response?.message|| error.message);
+    logger.error('Error fetching flight offer prices:', {
+      message: error.message,
+      responseData: error.response?.data
+    });
+
     return {
       success: false,
-      error: error.message
+      error: {
+        code: error.response?.status || 'INTERNAL_ERROR',
+        message: error.response?.data?.message || error.message
+      }
     };
   }
 };

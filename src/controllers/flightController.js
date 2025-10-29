@@ -47,33 +47,36 @@ export const flightsOfferController = async (req,res,next)=>{
 
 } 
 
-export const flightPriceOfferController = async (req,res,next)=>{
-  try{
-    const body = req.body
+export const flightPriceOfferController = async (req, res, next) => {
+  try {
+    const body = req.body;
 
-    if(!body){
-      throw new AppError('No data provided',400)
-   
+    if (!body) throw new AppError('No data provided', 400);
+
+    const confirmationOffer = await FlightPriceOfferService(body);
+
+    console.log('Confirmation Offer:', confirmationOffer);
+
+    if (confirmationOffer.success === false) {
+      return res.status(500).json({
+        success: false,
+        error: confirmationOffer.error?.message || 'Failed to fetch flight prices'
+      });
     }
-    const confirmationOffer = await FlightPriceOfferService(body)
-    if(!confirmationOffer){
-      throw new AppError('Failed to fetch flight offer prices please try again after some time or contact support team',500)
+
+    if (confirmationOffer.data?.warnings?.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: confirmationOffer.data.warnings[0]?.detail || 'Flight warning occurred'
+      });
     }
-    if (confirmationOffer.success === false){
-      throw new AppError(confirmationOffer.error || 'Failed to fetch flight offer prices please try again after some time or contact support team',500)
-     
-    }else if(confirmationOffer.data.warnings && confirmationOffer.data.warnings.length > 0){
-      throw new AppError(confirmationOffer.data.warnings[0].detail || 'Failed to fetch flight offer prices please try again after some time or contact support team',400) 
-    }
-    
-    return res.status(200).json({
-      sucess: true,
-      data: confirmationOffer
-    })
-    
-  }catch(err){
-    next(err)
-  
+
+    return res.status(200).json({ success: true, data: confirmationOffer.data });
+
+  } catch (err) {
+    logger.error('Controller error:', err);
+    next(err);
   }
-}
+};
+
 

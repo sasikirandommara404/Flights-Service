@@ -1,0 +1,27 @@
+services:
+  flightservice:
+    build:
+      context: .            # current folder (src/)
+      dockerfile: Dockerfile
+    container_name: flightservice
+    restart: always
+    ports:
+      - "3004:3004"
+    networks:
+      - monitor-net
+    
+
+  prom-server:
+    image: prom/prometheus
+    container_name: prom-server
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus-config.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitor-net
+
+networks:
+  monitor-net:
+    driver: bridge

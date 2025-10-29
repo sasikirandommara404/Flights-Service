@@ -8,6 +8,7 @@ const errorHandler = (err, req, res, next) => {
     error: {
       code: err.status || "INTERNAL_ERROR",
       message: err.message || "Try again later or contact support",
+      err
     }
 });
 };

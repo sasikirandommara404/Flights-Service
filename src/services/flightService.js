@@ -1,3 +1,4 @@
+import logger from '../../logger.js'
 import {
   searchAmadeusFlights,
   getFlightOfferPrices,
@@ -19,21 +20,30 @@ export const FlightOfferService = async (params)=>{
   }
 
 }
-export const FlightPriceOfferService = async (flightDetails)=>{
-  try{
-    if(!flightDetails){
-      return 'Invalid Data Entered'
-    }
-    const flightPrice = await getFlightOfferPrices(flightDetails)
-    logger.info('Flight Price:',flightPrice)
-    if(!flightPrice){
-      return 'Failed To Fetch flight prices for selected Flight Offer'
-    }
-    return flightPrice
-  }catch(err){
-    return err.message
+export const FlightPriceOfferService = async (flightDetails) => {
+  if (!flightDetails) {
+    return { success: false, error: { code: 'INVALID_DATA', message: 'No flight details provided' } };
   }
-}
+
+  try {
+    logger.info('Flight details received:', flightDetails);
+
+    const flightPrice = await getFlightOfferPrices(flightDetails);
+
+    logger.info('Flight Price response:', flightPrice);
+
+    // Ensure we always return an object with success/data or success/error
+    if (!flightPrice || typeof flightPrice !== 'object') {
+      return { success: false, error: { code: 'INTERNAL_ERROR', message: 'Invalid flight price response' } };
+    }
+
+    return flightPrice; // flightPrice already has { success, data } or { success, error }
+
+  } catch (err) {
+    logger.error('FlightPriceOfferService error:', err);
+    return { success: false, error: { code: 'INTERNAL_ERROR', message: err.message } };
+  }
+};
 
 export const getFlightDetailsByFlightOfferId = async(flightOfferId)=>{
   try{

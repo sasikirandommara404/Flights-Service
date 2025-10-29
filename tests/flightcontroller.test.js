@@ -9,10 +9,14 @@ token = jwt.sign({ id: 1 }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
 describe('Fligt Services for fetching flight offers',()=>{
     it('should fetch the flight offers',async ()=>{
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 30);
+        const departureDateStr = futureDate.toISOString().split('T')[0]; 
+
         const response=await request(app).post(`/api/flights/search/`).set('Authorization', `Bearer ${token}`).send({
             "origin": "BLR",
             "destination": "DEL",
-            "departureDate": "2025-09-20",
+            "departureDate": departureDateStr,
             "adults":1,
             "class":"ECONOMY",
             "currencyCode":"INR"
@@ -80,4 +84,3 @@ describe('Fligt Services for fetching flight offers',()=>{
     ,40000
     );
 });
-
